@@ -1,0 +1,32 @@
+{
+    "targetPlatforms": [
+        "aplite", 
+        "basalt", 
+        "chalk", 
+        "diorite"
+    ], 
+    "displayName": "stay_safe", 
+    "name": "stay_safe", 
+    "messageKeys": {
+        "location": 0
+    }, 
+    "companyName": "MakeAwesomeHappen", 
+    "enableMultiJS": true, 
+    "versionLabel": "1.0", 
+    "capabilities": [
+        "location"
+    ], 
+    "sdkVersion": "3", 
+    "appKeys": {
+        "location": 0
+    }, 
+    "longName": "stay_safe", 
+    "shortName": "stay_safe", 
+    "watchapp": {
+        "watchface": false
+    }, 
+    "resources": {
+        "media": []
+    }, 
+    "uuid": "aa8af67e-1a97-47b0-8be5-075b985ea9e9"
+}

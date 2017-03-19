@@ -1,60 +1,142 @@
 #include <pebble.h>
 
-static Window *s_window;
-static TextLayer *s_text_layer;
+static Window *window;
+static TextLayer *text_layer;
+static TextLayer *label_layer;
+static TextLayer *time_layer;
 
-static void prv_select_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_text_layer, "Select");
+static AppSync sync;
+static uint8_t sync_buffer[64];
+
+enum {
+  OUR_LOCATION = 0x0
+};
+
+void sync_tuple_changed_callback(const uint32_t key,
+        const Tuple* new_tuple, const Tuple* old_tuple, void* context) {
+  
+  switch (key) {
+    case OUR_LOCATION:
+      text_layer_set_text(text_layer, new_tuple->value->cstring);
+      break;
+  }
 }
 
-static void prv_up_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_text_layer, "Up");
+// http://stackoverflow.com/questions/21150193/logging-enums-on-the-pebble-watch/21172222#21172222
+char *translate_error(AppMessageResult result) {
+  switch (result) {
+    case APP_MSG_OK: return "APP_MSG_OK";
+    case APP_MSG_SEND_TIMEOUT: return "APP_MSG_SEND_TIMEOUT";
+    case APP_MSG_SEND_REJECTED: return "APP_MSG_SEND_REJECTED";
+    case APP_MSG_NOT_CONNECTED: return "APP_MSG_NOT_CONNECTED";
+    case APP_MSG_APP_NOT_RUNNING: return "APP_MSG_APP_NOT_RUNNING";
+    case APP_MSG_INVALID_ARGS: return "APP_MSG_INVALID_ARGS";
+    case APP_MSG_BUSY: return "APP_MSG_BUSY";
+    case APP_MSG_BUFFER_OVERFLOW: return "APP_MSG_BUFFER_OVERFLOW";
+    case APP_MSG_ALREADY_RELEASED: return "APP_MSG_ALREADY_RELEASED";
+    case APP_MSG_CALLBACK_ALREADY_REGISTERED: return "APP_MSG_CALLBACK_ALREADY_REGISTERED";
+    case APP_MSG_CALLBACK_NOT_REGISTERED: return "APP_MSG_CALLBACK_NOT_REGISTERED";
+    case APP_MSG_OUT_OF_MEMORY: return "APP_MSG_OUT_OF_MEMORY";
+    case APP_MSG_CLOSED: return "APP_MSG_CLOSED";
+    case APP_MSG_INTERNAL_ERROR: return "APP_MSG_INTERNAL_ERROR";
+    default: return "UNKNOWN ERROR";
+  }
 }
 
-static void prv_down_click_handler(ClickRecognizerRef recognizer, void *context) {
-  text_layer_set_text(s_text_layer, "Down");
+void sync_error_callback(DictionaryResult dict_error, AppMessageResult app_message_error, void *context) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "... Sync Error: %s", translate_error(app_message_error));
 }
 
-static void prv_click_config_provider(void *context) {
-  window_single_click_subscribe(BUTTON_ID_SELECT, prv_select_click_handler);
-  window_single_click_subscribe(BUTTON_ID_UP, prv_up_click_handler);
-  window_single_click_subscribe(BUTTON_ID_DOWN, prv_down_click_handler);
-}
+// static void handle_second_tick(struct tm* tick_time, TimeUnits units_changed) {
+//   static char time_text[] = "00:00";
 
-static void prv_window_load(Window *window) {
+//   strftime(time_text, sizeof(time_text), "%I:%M", tick_time);
+//   text_layer_set_text(time_layer, time_text);
+// }
+
+// static void init_clock(Window *window) {
+//   Layer *window_layer = window_get_root_layer(window);
+//   GRect bounds = layer_get_bounds(window_layer);
+
+//   time_layer = text_layer_create(GRect(0, 20, bounds.size.w, bounds.size.h-100));
+//   text_layer_set_text_alignment(time_layer, GTextAlignmentCenter);
+//   text_layer_set_text_color(time_layer, GColorWhite);
+//   text_layer_set_background_color(time_layer, GColorClear);
+//   text_layer_set_font(time_layer, fonts_get_system_font(FONT_KEY_BITHAM_42_LIGHT));
+
+//   time_t now = time(NULL);
+//   struct tm *current_time = localtime(&now);
+//   handle_second_tick(current_time, SECOND_UNIT);
+//   tick_timer_service_subscribe(SECOND_UNIT, &handle_second_tick);
+
+//   layer_add_child(window_get_root_layer(window), text_layer_get_layer(time_layer));
+// }
+
+static void init_location_search(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
-  s_text_layer = text_layer_create(GRect(0, 72, bounds.size.w, 20));
-  text_layer_set_text(s_text_layer, "Press a button");
-  text_layer_set_text_alignment(s_text_layer, GTextAlignmentCenter);
-  layer_add_child(window_layer, text_layer_get_layer(s_text_layer));
+  //label_layer = text_layer_create((GRect) { .origin = { 0, 90 }, .size = { bounds.size.w, 100 } });
+  label_layer = text_layer_create(GRect(0, 20, bounds.size.w, bounds.size.h-100));
+  text_layer_set_text(label_layer, "Nearest Open Venue:");
+  text_layer_set_text_color(label_layer, GColorWhite);
+  text_layer_set_text_alignment(label_layer, GTextAlignmentCenter);
+  text_layer_set_background_color(label_layer, GColorClear);
+  text_layer_set_font(label_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  layer_add_child(window_layer, text_layer_get_layer(label_layer));
+
+  //text_layer = text_layer_create((GRect) { .origin = { 0, 115 }, .size = { bounds.size.w, bounds.size.h } });
+  text_layer = text_layer_create((GRect) { .origin = { 0, 50 }, .size = { bounds.size.w, 100 } });;
+  text_layer_set_text(text_layer, "Loading...");
+  text_layer_set_text_color(text_layer, GColorWhite);
+  text_layer_set_text_alignment(text_layer, GTextAlignmentCenter);
+  text_layer_set_background_color(text_layer, GColorClear);
+  text_layer_set_overflow_mode(text_layer, GTextOverflowModeFill);
+  text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  layer_add_child(window_layer, text_layer_get_layer(text_layer));
+
+  Tuplet initial_values[] = {
+     TupletCString(OUR_LOCATION, "Loading...")
+  };
+
+  app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values),
+      sync_tuple_changed_callback, sync_error_callback, NULL);
 }
 
-static void prv_window_unload(Window *window) {
-  text_layer_destroy(s_text_layer);
+static void window_load(Window *window) {
+  init_location_search(window);
+  //init_clock(window);
 }
 
-static void prv_init(void) {
-  s_window = window_create();
-  window_set_click_config_provider(s_window, prv_click_config_provider);
-  window_set_window_handlers(s_window, (WindowHandlers) {
-    .load = prv_window_load,
-    .unload = prv_window_unload,
+static void window_unload(Window *window) {
+  text_layer_destroy(text_layer);
+  text_layer_destroy(label_layer);
+  text_layer_destroy(time_layer);
+}
+
+static void init(void) {
+  window = window_create();
+  window_set_window_handlers(window, (WindowHandlers) {
+    .load = window_load,
+    .unload = window_unload,
   });
+
+  app_message_open(64, 64);
+
   const bool animated = true;
-  window_stack_push(s_window, animated);
+  window_stack_push(window, animated);
+  window_set_background_color(window, GColorBlack);
 }
 
-static void prv_deinit(void) {
-  window_destroy(s_window);
+static void deinit(void) {
+  window_destroy(window);
 }
 
 int main(void) {
-  prv_init();
+  init();
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Done initializing, pushed window: %p", s_window);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Done initializing, pushed window: %p", window);
 
   app_event_loop();
-  prv_deinit();
+  deinit();
 }

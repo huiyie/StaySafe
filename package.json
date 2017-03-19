@@ -19,9 +19,10 @@
     "watchapp": {
       "watchface": false
     },
-    "messageKeys": [
-      "dummy"
-    ],
+    "messageKeys": {
+      "location": 0
+    },
+    "capabilities": ["location"],
     "resources": {
       "media": []
     }
