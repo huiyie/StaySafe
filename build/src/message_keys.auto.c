@@ -6,4 +6,5 @@
 // DO NOT MODIFY - CHANGES WILL BE OVERWRITTEN
 //
 
-uint32_t MESSAGE_KEY_dummy = 10000;
+uint32_t MESSAGE_KEY_crime = 0;
+uint32_t MESSAGE_KEY_location = 0;

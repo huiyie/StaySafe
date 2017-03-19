@@ -20,7 +20,8 @@
       "watchface": false
     },
     "messageKeys": {
-      "location": 0
+      "location": 0,
+      "crime": 1
     },
     "capabilities": ["location"],
     "resources": {

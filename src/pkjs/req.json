@@ -1,0 +1,45 @@
+{
+  "Inputs": {
+    "input1": {
+      "ColumnNames": [
+        "TYPE",
+        "YEAR",
+        "MONTH",
+        "DAY",
+        "HOUR",
+        "MINUTE",
+        "HUNDRED_BLOCK",
+        "NEIGHBOURHOOD",
+        "X",
+        "Y"
+      ],
+      "Values": [
+        [
+          "value",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "value",
+          "value",
+          "0",
+          "0"
+        ],
+        [
+          "value",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "value",
+          "value",
+          "0",
+          "0"
+        ]
+      ]
+    }
+  },
+  "GlobalParameters": {}
+}

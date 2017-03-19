@@ -8,7 +8,8 @@
     "displayName": "stay_safe", 
     "name": "stay_safe", 
     "messageKeys": {
-        "location": 0
+        "location": 0, 
+        "crime": 1
     }, 
     "companyName": "MakeAwesomeHappen", 
     "enableMultiJS": true, 
@@ -18,7 +19,8 @@
     ], 
     "sdkVersion": "3", 
     "appKeys": {
-        "location": 0
+        "location": 0, 
+        "crime": 1
     }, 
     "longName": "stay_safe", 
     "shortName": "stay_safe", 

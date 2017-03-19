@@ -4,12 +4,15 @@ static Window *window;
 static TextLayer *text_layer;
 static TextLayer *label_layer;
 static TextLayer *time_layer;
+static TextLayer *text_layer2;
+static TextLayer *label_layer2;
 
 static AppSync sync;
 static uint8_t sync_buffer[64];
 
 enum {
-  OUR_LOCATION = 0x0
+  OUR_LOCATION = 0x0,
+  OUR_CRIME = 0x1
 };
 
 void sync_tuple_changed_callback(const uint32_t key,
@@ -19,6 +22,9 @@ void sync_tuple_changed_callback(const uint32_t key,
     case OUR_LOCATION:
       text_layer_set_text(text_layer, new_tuple->value->cstring);
       break;
+     case OUR_CRIME:
+       text_layer_set_text(text_layer2, new_tuple->value->cstring);
+       break;
   }
 }
 
@@ -95,8 +101,28 @@ static void init_location_search(Window *window) {
   text_layer_set_font(text_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   layer_add_child(window_layer, text_layer_get_layer(text_layer));
 
+  //label_layer = text_layer_create((GRect) { .origin = { 0, 90 }, .size = { bounds.size.w, 100 } });
+  label_layer2 = text_layer_create(GRect(0, 90, bounds.size.w, bounds.size.h-100));
+  text_layer_set_text(label_layer2, "Most Probable Crime:");
+  text_layer_set_text_color(label_layer2, GColorWhite);
+  text_layer_set_text_alignment(label_layer2, GTextAlignmentCenter);
+  text_layer_set_background_color(label_layer2, GColorClear);
+  text_layer_set_font(label_layer2, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  layer_add_child(window_layer, text_layer_get_layer(label_layer2));
+
+  //text_layer = text_layer_create((GRect) { .origin = { 0, 115 }, .size = { bounds.size.w, bounds.size.h } });
+  text_layer2 = text_layer_create((GRect) { .origin = { 0, 115 }, .size = { bounds.size.w, 100 } });;
+  text_layer_set_text(text_layer2, "Tabulating...");
+  text_layer_set_text_color(text_layer2, GColorWhite);
+  text_layer_set_text_alignment(text_layer2, GTextAlignmentCenter);
+  text_layer_set_background_color(text_layer2, GColorClear);
+  text_layer_set_overflow_mode(text_layer2, GTextOverflowModeFill);
+  text_layer_set_font(text_layer2, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  layer_add_child(window_layer, text_layer_get_layer(text_layer2));
+
   Tuplet initial_values[] = {
-     TupletCString(OUR_LOCATION, "Loading...")
+     TupletCString(OUR_LOCATION, "Loading..."),
+     TupletCString(OUR_CRIME, "Tabulating...")
   };
 
   app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values, ARRAY_LENGTH(initial_values),

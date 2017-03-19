@@ -1,32 +1,32 @@
 var locationOptions = {timeout: 15000, maximumAge: 60000}; 
 
 function fetch_crime_prediction_data(pos) {
-	var neighbourhoods = [
-		'Central Business District',
-		'Oakridge',
-		'Grandview-Woodland',
-		'West-End',
-		'Fairview',
-		'Hastings-Sunrise',
-		'Strathcona',
-		'Stanley Park',
-		'Marpole',
-		'Renfrew-Collingwood',
-		'Kitsilano',
-		'Mount Pleasant',
-		'Sunset',
-		'Dunbar-Southlands',
-		'Victoria-Fraserview',
-		'Killarney',
-		'Riley Park',
-		'Kensington-Cedar Cottage',
-		'West Point Grey',
-		'South Cambie',
-		'Shaughnessy',
-		'Kerrisdale',
-		'Arbutus Ridge',
-		'Musqueam'
-	];
+  var neighbourhoods = [
+    'Central Business District',
+    'Oakridge',
+    'Grandview-Woodland',
+    'West-End',
+    'Fairview',
+    'Hastings-Sunrise',
+    'Strathcona',
+    'Stanley Park',
+    'Marpole',
+    'Renfrew-Collingwood',
+    'Kitsilano',
+    'Mount Pleasant',
+    'Sunset',
+    'Dunbar-Southlands',
+    'Victoria-Fraserview',
+    'Killarney',
+    'Riley Park',
+    'Kensington-Cedar Cottage',
+    'West Point Grey',
+    'South Cambie',
+    'Shaughnessy',
+    'Kerrisdale',
+    'Arbutus Ridge',
+    'Musqueam'
+  ];
 }
 
 function fetch_location_data(pos) {
@@ -49,7 +49,8 @@ function fetch_location_data(pos) {
 
         if (response && response.meta.code == '200' && response.response) {
           var venue = response.response.venues[0];
-          Pebble.sendAppMessage({location: venue.name + ', ' + venue.location.address});
+          Pebble.sendAppMessage({"location": venue.name + ', ' + venue.location.address, "crime": "stub"});
+          //Pebble.sendAppMessage({crime: 'stub'});
           //Pebble.sendAppMessage({location: venue.location.address + ', ' + venue.location.city});
         }
       } else {
